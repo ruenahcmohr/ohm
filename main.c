@@ -1,6 +1,8 @@
 #include <math.h>
 #include <stdio.h>
 #include "cmnCmdOptions2.h"
+#include "siprint.h"
+#include "numcol.h"
 
 #define nothing      0
 #define power        1
@@ -9,12 +11,12 @@
 #define resistance   8
 
 
-void calcVR(float P, float I, float *V, float *R) ;
-void calcIR(float P, float *I, float V, float *R) ;
-void calcIV(float P, float *I, float *V, float R);
-void calcPR(float *P, float I, float V, float *R) ;
-void calcPV(float *P, float I, float *V, float R) ;
-void calcPI(float *P, float *I, float V, float R);
+void calcVR(double P, double I, double *V, double *R) ;
+void calcIR(double P, double *I, double V, double *R) ;
+void calcIV(double P, double *I, double *V, double R);
+void calcPR(double *P, double I, double V, double *R) ;
+void calcPV(double *P, double I, double *V, double R) ;
+void calcPI(double *P, double *I, double V, double R);
 
 int Help (char * argv) ;
 void setupParams(CLOSet_t ** options) ;
@@ -24,11 +26,13 @@ int SetV  (char * argv) ;
 int SetR  (char * argv) ;
 
 unsigned char given, helpOnly;
-float P, I, V, R;
+double P, I, V, R;
 
 
 int main(int argc, char** argv) {
   CLOSet_t * options;
+  
+  char * s;
   
   options  = NULL;
   given    = nothing;
@@ -77,11 +81,10 @@ int main(int argc, char** argv) {
     
   }  
     
-  printf("Wattage is:       %f\n", P);
-  printf("Current is:       %f\n", I);
-  printf("Voltage is:       %f\n", V);
-  printf("Resistance is :   %f\n", R);
-
+  printf("Power      is:    %sW\n",    s = adoubleToPrefixS(P)); free(s);
+  printf("Current    is:    %sA\n",    s = adoubleToPrefixS(I)); free(s);
+  printf("Voltage    is:    %sV\n",    s = adoubleToPrefixS(V)); free(s);
+  printf("Resistance is:    %sOhms\n", s = adoubleToPrefixS(R)); free(s);
   
   cmdLineOptionFini(&options);
   return 0;
@@ -121,25 +124,25 @@ int Help (char * argv) {
 }
 
 int SetP (char * argv) {
-  P = atof(argv);
+  P = NumColExtract(argv);
   given |= power;
   return 1;
 }
 
 int SetI (char * argv) {
-  I = atof(argv);
+  I = NumColExtract(argv);
   given |= current;
   return 1;
 }
 
 int SetV (char * argv) {
-  V = atof(argv);
+  V = NumColExtract(argv);
   given |= voltage;
   return 1;
 }
 
 int SetR (char * argv) {
-  R = atof(argv);
+  R = NumColExtract(argv);
   given |= resistance;
   return 1;
 }
@@ -147,36 +150,36 @@ int SetR (char * argv) {
 
 // ----=====| sphere conversions |=====-----
 
-void calcVR(float P, float I, float *V, float *R) {
+void calcVR(double P, double I, double *V, double *R) {
    *V = P/I;
    *R = (*V)/I;
 }
 
 
-void calcIR(float P, float *I, float V, float *R) {
+void calcIR(double P, double *I, double V, double *R) {
    *I = P/V;
    *R = V/(*I);
 }
 
 
-void calcIV(float P, float *I, float *V, float R) {
+void calcIV(double P, double *I, double *V, double R) {
    *I = sqrt(P/R);
    *V = P/(*I);
 }
 
 
-void calcPR(float *P, float I, float V, float *R) {
+void calcPR(double *P, double I, double V, double *R) {
    *P = I*V;
    *R = V/I;
 }
 
-void calcPV(float *P, float I, float *V, float R) {
+void calcPV(double *P, double I, double *V, double R) {
    *V = I*R;
    *P = (*V)*I;
 }
 
 
-void calcPI(float *P, float *I, float V, float R) {
+void calcPI(double *P, double *I, double V, double R) {
    *I = V/R;
    *P = V*(*I);
 }
